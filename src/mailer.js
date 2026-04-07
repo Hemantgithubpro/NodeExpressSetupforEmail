@@ -17,7 +17,6 @@ function getMissingMailConfig(config) {
   if (!config.port) missing.push("SMTP_PORT");
   if (!config.user) missing.push("EMAIL_USER");
   if (!config.pass) missing.push("EMAIL_PASS");
-  if (!config.recieverEmail) missing.push("RECIEVER_EMAIL");
   return missing;
 }
 

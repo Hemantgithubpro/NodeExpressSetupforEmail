@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Sender</title>
+    <style>
+        :root {
+            --bg: #f8f6f2;
+            --card: #fffdf8;
+            --text: #1d1d1f;
+            --muted: #616161;
+            --accent: #005f73;
+            --accent-2: #0a9396;
+            --border: #e8e3d9;
+            --ok: #2a9d8f;
+            --err: #b42318;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            background: radial-gradient(circle at 20% 10%, #e9f5f7, transparent 45%),
+                radial-gradient(circle at 80% 80%, #f6ece0, transparent 40%), var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .card {
+            width: min(760px, 100%);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(12, 40, 46, 0.08);
+            padding: 28px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+        }
+
+        p {
+            margin: 0 0 20px;
+            color: var(--muted);
+        }
+
+        form {
+            display: grid;
+            gap: 14px;
+        }
+
+        label {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            margin-top: 6px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font: inherit;
+            background: #fff;
+        }
+
+        textarea {
+            min-height: 160px;
+            resize: vertical;
+        }
+
+        button {
+            border: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 12px 16px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #result {
+            min-height: 24px;
+            font-weight: 600;
+        }
+
+        .ok {
+            color: var(--ok);
+        }
+
+        .err {
+            color: var(--err);
+        }
+    </style>
+</head>
+
+<body>
+    <main class="card">
+        <h1>Send Email</h1>
+        <p>Quick form for your Node + Express SMTP endpoint.</p>
+
+        <form id="emailForm">
+            <label>
+                Receiver Email (optional if RECIEVER_EMAIL is set in .env)
+                <input type="email" id="receiverEmail" placeholder="friend@example.com" />
+            </label>
+
+            <label>
+                Subject
+                <input type="text" id="subject" required placeholder="Your subject" />
+            </label>
+
+            <label>
+                Message
+                <textarea id="body" required placeholder="Write your email message"></textarea>
+            </label>
+
+            <button id="submitBtn" type="submit">Send Email</button>
+            <div id="result" aria-live="polite"></div>
+        </form>
+    </main>
+
+    <script>
+        const form = document.getElementById("emailForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const result = document.getElementById("result");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const receiverEmail = document.getElementById("receiverEmail").value.trim();
+            const subject = document.getElementById("subject").value.trim();
+            const body = document.getElementById("body").value.trim();
+
+            result.textContent = "Sending...";
+            result.className = "";
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch("/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ receiverEmail, subject, body }),
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || "Failed to send email");
+                }
+
+                result.textContent = "Email sent successfully.";
+                result.className = "ok";
+                form.reset();
+            } catch (error) {
+                result.textContent = error.message;
+                result.className = "err";
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
